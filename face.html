@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Face Follow — WEWBSITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root{--accent:#0d6efd;--muted:#6c757d}
+    body{font-family:Inter,system-ui,Arial,sans-serif;padding:18px;background:linear-gradient(180deg,#f6f9fc,#fff);color:#111}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:1100px;margin:0 auto 14px}
+    .back{color:#fff;background:var(--accent);padding:8px 12px;border-radius:8px;text-decoration:none}
+    .stage{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+    .canvas-wrap{position:relative;border-radius:12px;overflow:hidden;background:#000;min-height:420px;display:flex;align-items:center;justify-content:center}
+    /* mirror video so user movement feels natural (left on screen = user's left) */
+    video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+    .face-ui{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+    .avatar-wrap{width:220px;height:280px;display:flex;align-items:center;justify-content:center;perspective:900px}
+    .avatar{width:200px;height:240px;border-radius:18px;background:linear-gradient(#fff,#f1f6ff);box-shadow:0 12px 28px rgba(14,30,37,0.08);display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;transition:transform .12s linear}
+    /* speaking animation toggles mouth open */
+    .avatar.speaking svg #mouth{transition:transform .08s linear; transform:translateY(1px) scaleY(1.4)}
+    .info{padding:12px;background:#fff;border-radius:12px;box-shadow:0 8px 22px rgba(14,30,37,0.04)}
+    .muted{color:var(--muted)}
+    /* chat UI */
+    .chat{display:flex;flex-direction:column;gap:10px}
+    .chat-log{height:220px;overflow:auto;padding:8px;border-radius:10px;background:#f8fbff;border:1px solid #eef4ff}
+    .bubble{padding:8px 12px;border-radius:12px;max-width:80%;margin:6px 0;line-height:1.25}
+    .bubble.user{background:var(--accent);color:#fff;margin-left:auto}
+    .bubble.bot{background:#eef6ff;color:#07326a;margin-right:auto}
+    .controls{display:flex;gap:8px;margin-top:8px}
+    .btn-mic{background:linear-gradient(90deg,#ff6b6b,#ff8a00);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn-stop{background:#ddd;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    @media(max-width:880px){.stage{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html" class="back" aria-label="Back to Home">← Home</a>
+    <h3 style="margin:0">Face Follow — Talk with the avatar</h3>
+  </div>
+
+  <div class="stage">
+    <div class="canvas-wrap" id="videoWrap">
+      <video id="video" playsinline autoplay muted></video>
+
+      <div class="face-ui" aria-hidden="true">
+        <div class="avatar-wrap">
+          <div class="avatar" id="avatar" aria-hidden="true">
+            <svg viewBox="0 0 120 160" aria-hidden="true" role="img">
+              <defs><radialGradient id="skin" cx="50%" cy="30%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#f6f8ff"/></radialGradient></defs>
+              <rect x="10" y="10" rx="18" ry="18" width="100" height="140" fill="url(#skin)"/>
+              <g id="leftEye" transform="translate(34,62)"><ellipse cx="0" cy="0" rx="12" ry="9" fill="#fff" /><circle cx="0" cy="0" r="5" fill="#111" id="pupilL" /></g>
+              <g id="rightEye" transform="translate(86,62)"><ellipse cx="0" cy="0" rx="12" ry="9" fill="#fff" /><circle cx="0" cy="0" r="5" fill="#111" id="pupilR" /></g>
+              <path d="M60 76 q2 8 -4 12" stroke="#d1d7e8" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path id="mouth" d="M48 100 q12 10 24 0" stroke="#d1d7e8" stroke-width="3" fill="none" stroke-linecap="round" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info" role="region" aria-live="polite">
+      <p class="muted">This demo tracks your face and lets you speak to the avatar. It uses your camera and microphone — nothing is uploaded. Allow permissions when prompted.</p>
+
+      <p><strong>Status:</strong> <span id="status">Waiting for camera + mic permission…</span></p>
+
+      <div class="chat">
+        <div class="chat-log" id="chatLog" aria-live="polite"></div>
+
+        <div class="controls">
+          <button id="micBtn" class="btn-mic" title="Start listening">🎤 Talk</button>
+          <button id="stopBtn" class="btn-stop" title="Stop listening">Stop</button>
+          <button id="speakBtn" class="btn-stop" title="Say hello">Say Hello</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.7/dist/face-landmarks-detection.js"></script>
+
+  <script>
+    // basic face follow + speech (TTS + STT) integration
+    const video = document.getElementById('video');
+    const statusEl = document.getElementById('status');
+    const avatar = document.getElementById('avatar');
+    const pupilL = document.getElementById('pupilL');
+    const pupilR = document.getElementById('pupilR');
+    const chatLog = document.getElementById('chatLog');
+    const micBtn = document.getElementById('micBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const speakBtn = document.getElementById('speakBtn');
+
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: true
+        });
+        video.srcObject = stream;
+        await video.play();
+        statusEl.textContent = 'Camera active — loading model...';
+        return true;
+      } catch (err) {
+        statusEl.textContent = 'Camera/mic access denied or unavailable.';
+        console.error(err);
+        return false;
+      }
+    }
+
+    function clamp(v, a=-1, b=1){ return Math.max(a, Math.min(b, v)); }
+    function setPupilPosition(px, py, el) {
+      const maxX = 6; const maxY = 4;
+      const tx = clamp(px) * maxX; const ty = clamp(py) * maxY;
+      el.setAttribute('cx', String(tx)); el.setAttribute('cy', String(ty));
+    }
+
+    // load model and run tracking loop
+    async function runFaceModel() {
+      const model = await faceLandmarksDetection.load(faceLandmarksDetection.SupportedPackages.mediapipeFacemesh, { maxFaces: 1 });
+      statusEl.textContent = 'Model loaded — looking for face...';
+      async function frame() {
+        const faces = await model.estimateFaces({ input: video, returnTensors: false, flipHorizontal: true });
+        if (faces && faces.length > 0) {
+          statusEl.textContent = 'Face detected';
+          const face = faces[0];
+          let cx = null, cy = null;
+          if (face.boundingBox && face.boundingBox.topLeft && face.boundingBox.bottomRight) {
+            const tl = face.boundingBox.topLeft, br = face.boundingBox.bottomRight;
+            cx = (tl[0] + br[0]) / 2; cy = (tl[1] + br[1]) / 2;
+          } else if (face.scaledMesh && face.scaledMesh.length) {
+            const pts = face.scaledMesh; const sample = [33,263,1];
+            let sx=0, sy=0, c=0; sample.forEach(i => { if (pts[i]) { sx+=pts[i][0]; sy+=pts[i][1]; c++; }});
+            if (c) { cx = sx/c; cy = sy/c; }
+          }
+          if (cx !== null && cy !== null) {
+            const nx = (cx - (video.videoWidth/2)) / (video.videoWidth/2);
+            const ny = (cy - (video.videoHeight/2)) / (video.videoHeight/2);
+            const lookX = clamp(-nx), lookY = clamp(-ny);
+            avatar._px = (avatar._px ?? 0) * 0.7 + lookX * 0.3;
+            avatar._py = (avatar._py ?? 0) * 0.7 + lookY * 0.3;
+            const rotY = avatar._px * 12; const rotX = avatar._py * -7;
+            avatar.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+            setPupilPosition(avatar._px, avatar._py, pupilL);
+            setPupilPosition(avatar._px, avatar._py, pupilR);
+          }
+        } else {
+          statusEl.textContent = 'No face — move into view';
+          avatar._px = (avatar._px ?? 0) * 0.85; avatar._py = (avatar._py ?? 0) * 0.85;
+          avatar.style.transform = `rotateY(${(avatar._px||0)*12}deg) rotateX(${(avatar._py||0)*-7}deg)`;
+          setPupilPosition(avatar._px, avatar._py, pupilL);
+          setPupilPosition(avatar._px, avatar._py, pupilR);
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    // Simple chat / bot logic
+    function appendBubble(text, who='bot') {
+      const el = document.createElement('div');
+      el.className = `bubble ${who==='user' ? 'user' : 'bot'}`;
+      el.textContent = text;
+      chatLog.appendChild(el);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function botReply(text) {
+      // simple rule-based replies; extend as needed
+      const t = text.toLowerCase();
+      if (/hello|hi|hey/.test(t)) return "Hello! I'm your avatar — nice to meet you.";
+      if (/how are you/.test(t)) return "I'm a demo avatar — I feel digital and ready to help!";
+      if (/name/.test(t)) return "You can call me WEWBSITE avatar.";
+      if (/roll|dice/.test(t)) return `I rolled a ${Math.floor(Math.random()*6)+1} 🎲`;
+      if (/joke/.test(t)) return "Why did the web dev go broke? Because he used up all his cache. 😄";
+      if (/time/.test(t)) return `It's ${new Date().toLocaleTimeString()}.`;
+      // fallback: echo-ish
+      return "You said: " + text;
+    }
+
+    // load a preferred "soft" voice and use lower volume / slower rate / gentle pitch
+    let preferredVoice = null;
+    function loadVoices() {
+      const voices = speechSynthesis.getVoices() || [];
+      if (!voices.length) return;
+      const preferNames = [
+        'Google UK English Female',
+        'Microsoft Zira',
+        'Samantha',
+        'en-US-Wavenet-F',
+        'en-GB-Wavenet-F',
+        'Female'
+      ];
+      preferredVoice = voices.find(v => preferNames.some(p => v.name.includes(p) || v.lang.includes(p))) 
+                       || voices.find(v => v.lang && v.lang.startsWith('en')) 
+                       || voices[0];
+    }
+    if (typeof speechSynthesis !== 'undefined') {
+      loadVoices();
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function speak(text, opts = { volume: 0.6, rate: 0.95, pitch: 1.05 }) {
+      if (!('speechSynthesis' in window)) {
+        appendBubble("Speech synthesis not supported in this browser.", 'bot');
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = preferredVoice?.lang || 'en-US';
+      if (preferredVoice) u.voice = preferredVoice;
+      u.volume = Math.max(0, Math.min(1, opts.volume)); // 0..1
+      u.rate = Math.max(0.5, Math.min(2, opts.rate));    // 0.5..2 typical
+      u.pitch = Math.max(0, Math.min(2, opts.pitch));    // 0..2 typical
+
+      u.onstart = () => { avatar.classList.add('speaking'); };
+      u.onend = () => { avatar.classList.remove('speaking'); };
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    }
+
+    // Speech recognition (STT)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognizer = null;
+    if (SpeechRecognition) {
+      recognizer = new SpeechRecognition();
+      recognizer.lang = 'en-US';
+      recognizer.interimResults = false;
+      recognizer.maxAlternatives = 1;
+      recognizer.onstart = () => { micBtn.textContent = 'Listening…'; micBtn.disabled = true; };
+      recognizer.onend = () => { micBtn.textContent = '🎤 Talk'; micBtn.disabled = false; };
+      recognizer.onerror = (e) => { console.error('STT error', e); appendBubble('Voice error: ' + (e.error||e.message), 'bot'); };
+      recognizer.onresult = (ev) => {
+        const text = ev.results[0][0].transcript;
+        appendBubble(text, 'user');
+        const reply = botReply(text);
+        appendBubble(reply, 'bot');
+        speak(reply);
+      };
+    } else {
+      micBtn.title = 'Speech recognition not supported';
+      micBtn.disabled = true;
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (recognizer) {
+        try { recognizer.start(); } catch (e) { console.error(e); }
+      }
+    });
+    stopBtn.addEventListener('click', () => {
+      if (recognizer) recognizer.stop();
+      speechSynthesis.cancel();
+      avatar.classList.remove('speaking');
+    });
+    speakBtn.addEventListener('click', () => {
+      const hello = "Hi — I'm your friendly avatar. Ask me something!";
+      appendBubble(hello, 'bot'); speak(hello);
+    });
+
+    // start camera + model + greet
+    (async () => {
+      const ok = await initCamera();
+      if (!ok) return;
+      await runFaceModel();
+      // initial greeting
+      const greet = "Hi there — allow mic and speak to me!";
+      appendBubble(greet, 'bot'); speak(greet);
+    })();
+  </script>
+</body>
+</html>

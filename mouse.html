@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mouse Physics + Solar System</title>
+<style>
+  body {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    height: 100vh;
+    font-family: system-ui, sans-serif;
+    background: radial-gradient(circle at 40% 60%, #08101f 0%, #020610 100%);
+    color: #d7e5ff;
+  }
+  .panel {
+    padding: 18px;
+    background: rgba(255,255,255,0.03);
+    border-right: 1px solid rgba(255,255,255,0.05);
+    overflow-y: auto;
+  }
+  h1 { font-size: 18px; margin-bottom: 10px; }
+  label { font-size: 13px; color: #9cb3d1; display:block; margin-top:10px; }
+  input[type=range] { width:100%; }
+  button {
+    margin-top:8px;
+    background: linear-gradient(90deg, #38bdf8, #60a5fa);
+    border:none; border-radius:8px;
+    color:#041020;
+    padding:6px 12px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  canvas { width:100%; height:100%; display:block; background:#030a14; }
+</style>
+</head>
+<body>
+  <div class="panel">
+    <h1>🌌 Mouse Physics + Solar System</h1>
+    <label>Solar System Gravity Strength</label>
+    <input id="gravForce" type="range" min="0" max="2" step="0.01" value="1">
+    <label>Planet Orbital Speed Multiplier</label>
+    <input id="speedMult" type="range" min="0.1" max="3" step="0.1" value="1">
+    <button id="resetSolar">Reset Solar System</button>
+    <button id="toggleSolar">Toggle Solar System</button>
+    <hr style="margin:12px 0;border:0;border-top:1px solid rgba(255,255,255,0.08);">
+    <p>💡 Move mouse to see velocity vectors. Click to throw the yellow particle.</p>
+    <p>🌞 You can increase gravity or speed to see dramatic orbits!</p>
+  </div>
+  <canvas id="play"></canvas>
+
+<script>
+const canvas = document.getElementById('play');
+const ctx = canvas.getContext('2d');
+let W = canvas.width = window.innerWidth - 420;
+let H = canvas.height = window.innerHeight;
+window.addEventListener('resize', ()=>{ W=canvas.width=window.innerWidth-420; H=canvas.height=window.innerHeight; });
+
+// ---- Mouse tracking ----
+let mouse = {x:W/2,y:H/2}, last={x:W/2,y:H/2,t:performance.now()}, vel={x:0,y:0}, smv={x:0,y:0};
+canvas.addEventListener('mousemove', e=>{
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left, y=e.clientY-rect.top, t=performance.now();
+  const dt=(t-last.t)/1000;
+  vel.x=(x-last.x)/dt; vel.y=(y-last.y)/dt;
+  smv.x=smv.x*0.8+vel.x*0.2; smv.y=smv.y*0.8+vel.y*0.2;
+  last={x,y,t}; mouse={x,y};
+});
+
+// ---- Particle throw ----
+let particle={x:W/2,y:H/2,vx:0,vy:0,alive:false};
+canvas.addEventListener('click',()=>{
+  particle.x=mouse.x; particle.y=mouse.y;
+  particle.vx=smv.x*0.5; particle.vy=smv.y*0.5;
+  particle.alive=true;
+});
+
+// ---- Solar system setup ----
+let solarOn=true;
+const planets=[
+  {name:'Mercury',r:4,dist:60,speed:1.6,color:'#a3a3a3'},
+  {name:'Venus',r:6,dist:100,speed:1.2,color:'#f7c873'},
+  {name:'Earth',r:6,dist:140,speed:1.0,color:'#4ec6ff'},
+  {name:'Mars',r:5,dist:180,speed:0.8,color:'#ff7043'},
+  {name:'Jupiter',r:12,dist:240,speed:0.4,color:'#ffcf7f'},
+  {name:'Saturn',r:10,dist:300,speed:0.3,color:'#f7d670'},
+  {name:'Uranus',r:8,dist:360,speed:0.2,color:'#8dd9ff'},
+  {name:'Neptune',r:8,dist:420,speed:0.18,color:'#497eff'}
+];
+planets.forEach(p=>p.angle=Math.random()*Math.PI*2);
+let Gscale=1, speedScale=1;
+document.getElementById('gravForce').addEventListener('input',e=>Gscale=parseFloat(e.target.value));
+document.getElementById('speedMult').addEventListener('input',e=>speedScale=parseFloat(e.target.value));
+document.getElementById('resetSolar').addEventListener('click',()=>planets.forEach(p=>p.angle=0));
+document.getElementById('toggleSolar').addEventListener('click',()=>solarOn=!solarOn);
+
+// ---- Main loop ----
+function draw(){
+  ctx.fillStyle="#030a14";
+  ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, cy=H/2;
+
+  // draw Sun
+  ctx.beginPath();
+  ctx.arc(cx,cy,16,0,Math.PI*2);
+  ctx.fillStyle="#ffd54f";
+  ctx.fill();
+
+  // --- Solar system motion ---
+  if(solarOn){
+    planets.forEach(p=>{
+      p.angle += p.speed * 0.01 * speedScale;
+      const x = cx + Math.cos(p.angle) * p.dist;
+      const y = cy + Math.sin(p.angle) * p.dist;
+      ctx.beginPath();
+      ctx.arc(x,y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.color;
+      ctx.fill();
+
+      // orbit path
+      ctx.beginPath();
+      ctx.arc(cx,cy,p.dist,0,Math.PI*2);
+      ctx.strokeStyle="rgba(255,255,255,0.05)";
+      ctx.lineWidth=1;
+      ctx.stroke();
+
+      // simulate slight gravitational wobble effect
+      p.dist += Math.sin(Date.now()/1000 + p.dist)*0.05*Gscale;
+    });
+  }
+
+  // --- Particle physics ---
+  if(particle.alive){
+    particle.vy += 100 * 0.016; // mild gravity
+    particle.vx *= 0.99; particle.vy *= 0.99;
+    particle.x += particle.vx*0.016;
+    particle.y += particle.vy*0.016;
+
+    // bounds
+    if(particle.x<0||particle.x>W||particle.y<0||particle.y>H){
+      particle.alive=false;
+    }
+
+    ctx.beginPath();
+    ctx.arc(particle.x,particle.y,8,0,Math.PI*2);
+    ctx.fillStyle="#ffeb3b";
+    ctx.fill();
+  }
+
+  // --- Mouse vector arrow ---
+  const scale=0.05;
+  ctx.beginPath();
+  ctx.moveTo(mouse.x,mouse.y);
+  ctx.lineTo(mouse.x+smv.x*scale,mouse.y+smv.y*scale);
+  ctx.strokeStyle="#38bdf8";
+  ctx.lineWidth=2;
+  ctx.stroke();
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

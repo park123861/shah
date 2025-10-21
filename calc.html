@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Play / Tools — WEWBSITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+  <style>
+    .games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:12px}
+    .game-card{padding:14px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:0 8px 20px rgba(14,30,37,0.04)}
+    .controls-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .result{margin-top:10px;font-weight:700;color:var(--accent)}
+    .reel{font-size:1.6rem;padding:6px 10px;background:#f1f6ff;border-radius:8px}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand"><h1>WEWBSITE</h1><p class="tag">Tools & Fun</p></div>
+      <nav class="main-nav" aria-label="Main navigation"><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li><li><a href="calc.html" class="active">Play / Tools</a></li></ul></nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>Quick Games</h2>
+      <p class="lead">Small, instant web games — play and have fun.</p>
+
+      <div class="games-grid">
+
+        <!-- Tip Calculator (existing) -->
+        <div class="game-card">
+          <h3>Tip Calculator</h3>
+          <div class="inline-form">
+            <label for="bill">Bill</label>
+            <input id="bill" type="number" step="0.01" min="0" placeholder="0.00">
+            <label for="tip">Tip %</label>
+            <input id="tip" type="number" step="1" min="0" value="15">
+            <button class="btn-primary" onclick="calculateTip()">Calculate</button>
+          </div>
+          <div id="tipResult" class="result" aria-live="polite"></div>
+        </div>
+
+        <!-- Coin Flip -->
+        <div class="game-card">
+          <h3>Coin Flip</h3>
+          <p>Flip a coin — heads or tails?</p>
+          <div class="controls-row">
+            <button class="btn-primary" onclick="flipCoin()">Flip Coin</button>
+            <button class="btn-muted" onclick="flipMany()">Flip 10</button>
+          </div>
+          <div id="coinResult" class="result" aria-live="polite"></div>
+        </div>
+
+        <!-- Rock Paper Scissors -->
+        <div class="game-card">
+          <h3>Rock • Paper • Scissors</h3>
+          <p>Choose and play against the computer.</p>
+          <div class="controls-row">
+            <button onclick="playRPS('rock')" class="btn-primary">✊ Rock</button>
+            <button onclick="playRPS('paper')" class="btn-primary">✋ Paper</button>
+            <button onclick="playRPS('scissors')" class="btn-primary">✌️ Scissors</button>
+          </div>
+          <div id="rpsResult" class="result" aria-live="polite"></div>
+        </div>
+
+        <!-- Number Guessing -->
+        <div class="game-card">
+          <h3>Guess the Number</h3>
+          <p>Computer picked 1–100. You try to guess it.</p>
+          <div class="controls-row">
+            <input id="guessInput" type="number" min="1" max="100" placeholder="1-100" />
+            <button class="btn-primary" onclick="checkGuess()">Guess</button>
+            <button class="btn-muted" onclick="startNewGame()">New Game</button>
+          </div>
+          <div id="guessResult" class="result" aria-live="polite"></div>
+        </div>
+
+        <!-- Slots -->
+        <div class="game-card">
+          <h3>Mini Slots</h3>
+          <p>Spin three reels and try to match.</p>
+          <div class="controls-row" style="align-items:center">
+            <div class="reel" id="reel1">🍒</div>
+            <div class="reel" id="reel2">🍋</div>
+            <div class="reel" id="reel3">🍊</div>
+            <button class="btn-primary" onclick="playSlots()">Spin</button>
+          </div>
+          <div id="slotsResult" class="result" aria-live="polite"></div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-col"><h4>WEWBSITE</h4><p class="muted">Playful tools.</p></div>
+      <div class="footer-col"><h5>Links</h5><ul class="footer-links"><li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li></ul></div>
+      <div class="footer-col"><h5>Contact</h5><p class="muted"><a href="mailto:parkseroyi42@gmail.com">parkseroyi42@gmail.com</a></p></div>
+    </div>
+    <div class="footer-bottom"><div class="container">© <span id="year"></span> WEWBSITE</div></div>
+  </footer>
+
+  <script>
+    // Tip / Dice functions already in script.js but keep safe defaults
+    function calculateTip() {
+      const bill = parseFloat(document.getElementById('bill')?.value || 0);
+      const tipPct = parseFloat(document.getElementById('tip')?.value || 0);
+      const out = document.getElementById('tipResult');
+      if (isNaN(bill) || bill <= 0) { out.textContent = 'Enter a valid bill amount.'; return; }
+      const tip = Math.round((bill * (tipPct/100)) * 100) / 100;
+      const total = Math.round((bill + tip) * 100) / 100;
+      out.textContent = `Tip: $${tip.toFixed(2)} · Total: $${total.toFixed(2)}`;
+    }
+    function rollDice(){ const n = Math.floor(Math.random()*6)+1; document.getElementById('diceResult').textContent = `🎲 ${n}`; }
+
+    // Coin Flip
+    function flipCoin() {
+      const r = Math.random() < 0.5 ? 'Heads' : 'Tails';
+      document.getElementById('coinResult').textContent = `Result: ${r}`;
+    }
+    function flipMany() {
+      let heads = 0, tails = 0;
+      for (let i=0;i<10;i++) Math.random() < 0.5 ? heads++ : tails++;
+      document.getElementById('coinResult').textContent = `10 flips → Heads: ${heads}, Tails: ${tails}`;
+    }
+
+    // Rock Paper Scissors
+    function playRPS(choice) {
+      const opts = ['rock','paper','scissors'];
+      const comp = opts[Math.floor(Math.random()*opts.length)];
+      let result = '';
+      if (choice === comp) result = "It's a tie.";
+      else if ((choice==='rock'&&comp==='scissors')||(choice==='paper'&&comp==='rock')||(choice==='scissors'&&comp==='paper')) result = "You win!";
+      else result = "You lose.";
+      document.getElementById('rpsResult').textContent = `You: ${choice} · Computer: ${comp} → ${result}`;
+    }
+
+    // Guess the Number
+    let secret = Math.floor(Math.random()*100)+1;
+    let attempts = 0;
+    function startNewGame() {
+      secret = Math.floor(Math.random()*100)+1; attempts = 0;
+      document.getElementById('guessResult').textContent = 'New game started. Guess 1–100.';
+      document.getElementById('guessInput').value = '';
+    }
+    function checkGuess() {
+      const val = parseInt(document.getElementById('guessInput')?.value, 10);
+      const out = document.getElementById('guessResult');
+      attempts++;
+      if (!val || val < 1 || val > 100) { out.textContent = 'Enter a number 1–100.'; return; }
+      if (val === secret) {
+        out.textContent = `Correct! You found ${secret} in ${attempts} attempts.`;
+        // auto-start new game after win
+        setTimeout(startNewGame, 1500);
+      } else if (val < secret) out.textContent = 'Too low — try higher.';
+      else out.textContent = 'Too high — try lower.';
+    }
+
+    // Slots
+    const symbols = ['🍒','🍋','🍊','🍉','⭐','🔔'];
+    function spinReel() { return symbols[Math.floor(Math.random()*symbols.length)]; }
+    function playSlots() {
+      const r1 = spinReel(), r2 = spinReel(), r3 = spinReel();
+      document.getElementById('reel1').textContent = r1;
+      document.getElementById('reel2').textContent = r2;
+      document.getElementById('reel3').textContent = r3;
+      let res = 'No match — try again.';
+      if (r1===r2 && r2===r3) res = 'Jackpot! 🎉';
+      else if (r1===r2 || r2===r3 || r1===r3) res = 'Nice — two match!';
+      document.getElementById('slotsResult').textContent = res;
+    }
+
+    // initialize UI
+    document.addEventListener('DOMContentLoaded', () => {
+      const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
+      // ensure guess game has a prompt
+      document.getElementById('guessResult').textContent = 'Guess a number between 1 and 100.';
+    });
+  </script>
+</body>
+</html>

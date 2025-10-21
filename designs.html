@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Design Presets — WEWBSITE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@300;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: linear-gradient(180deg,#f6f9fc,#ffffff);
+      --primary:#0d6efd;
+      --accent:#0b5ed7;
+      --text:#0b2540;
+      --panel:#fff;
+      --glass: rgba(255,255,255,0.6);
+      --radius:12px;
+      --shadow: 0 10px 30px rgba(14,30,37,0.06);
+      --font: "Inter", system-ui, Arial, sans-serif;
+    }
+    /* theme classes override variables */
+    body.theme-space {
+      --bg: radial-gradient(ellipse at center,#071026 0%, #020617 55%), linear-gradient(180deg,#021026,#020617);
+      --primary:#7ce8ff;
+      --accent:#a07cff;
+      --text:#e6f7ff;
+      --panel: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --shadow: 0 10px 40px rgba(1,6,20,0.6);
+      --font: "Space Grotesk", system-ui, sans-serif;
+    }
+    body.theme-neon {
+      --bg: linear-gradient(180deg,#050014 0%, #001018 60%);
+      --primary:#ff00d0;
+      --accent:#00e6ff;
+      --text:#e9f6ff;
+      --panel: rgba(255,255,255,0.03);
+      --glass: rgba(255,255,255,0.02);
+      --shadow: 0 10px 40px rgba(0,0,0,0.7);
+      --font: "Space Grotesk", system-ui, sans-serif;
+    }
+    body.theme-ocean {
+      --bg: linear-gradient(180deg,#e6f7ff 0%, #d7f1ff 35%, #c1eafc 100%);
+      --primary:#0b88c2;
+      --accent:#00b4d8;
+      --text:#063447;
+      --panel:#ffffff;
+      --shadow: 0 10px 30px rgba(8,60,85,0.06);
+      --font: "Inter", system-ui, sans-serif;
+    }
+    body.theme-sunset {
+      --bg: linear-gradient(180deg,#fff0e6 0%, #ffd6b3 40%, #ffb3a7 100%);
+      --primary:#ff6b6b;
+      --accent:#ffb86b;
+      --text:#3a1f1f;
+      --panel:#fff;
+      --shadow: 0 10px 30px rgba(58,31,31,0.06);
+    }
+    body.theme-min {
+      --bg: linear-gradient(180deg,#ffffff,#f4f6f8);
+      --primary:#0d6efd;
+      --accent:#0b5ed7;
+      --text:#222;
+      --panel:#fff;
+      --shadow: none;
+    }
+
+    html,body{height:100%;margin:0;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    .page{max-width:1100px;margin:28px auto;padding:20px;display:grid;grid-template-columns:320px 1fr;gap:20px}
+    .controls{background:var(--panel);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+    .preview{background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border-radius:12px;padding:28px;box-shadow:var(--shadow);min-height:560px;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+    .title{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand h1{margin:0;font-size:1.1rem;color:var(--primary);letter-spacing:.6px}
+    .sample-card{background:var(--panel);padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,12,0.05);display:flex;align-items:center;gap:14px}
+    .sample-avatar{width:64px;height:64px;background:linear-gradient(180deg,var(--accent),var(--primary));border-radius:12px;flex:0 0 64px;box-shadow:0 6px 18px rgba(0,0,0,0.12)}
+    .sample-text h3{margin:0 0 4px 0}
+    .sample-buttons{display:flex;gap:8px}
+    .btn{padding:8px 12px;border-radius:8px;border:none;background:var(--primary);color:white;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(13,110,253,0.12)}
+    .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(0,0,0,0.06)}
+    label{display:block;font-size:.85rem;margin-top:12px;color:var(--text)}
+    select,input[type="color"],input[type="range"],input[type="text"]{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:#fff}
+    .theme-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .theme-item{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px;border-radius:8px;cursor:pointer}
+    .theme-item:hover{background:rgba(0,0,0,0.03)}
+    .small{font-size:.85rem;color:var(--text)}
+    .row{display:flex;gap:8px;align-items:center}
+    .footer-sample{margin-top:auto;padding:12px;border-radius:10px;background:linear-gradient(90deg, rgba(0,0,0,0.02), rgba(255,255,255,0.02));display:flex;justify-content:space-between;align-items:center}
+    /* Space stars overlay */
+    .stars{position:absolute;inset:0;pointer-events:none;opacity:.9}
+    .stars .s{position:absolute;background:radial-gradient(circle,#fff 0%, rgba(255,255,255,0.07) 50%, transparent 60%);border-radius:50%;opacity:.9}
+    /* simple responsive */
+    @media(max-width:880px){.page{grid-template-columns:1fr;padding:12px}}
+  </style>
+</head>
+<body>
+  <div class="page" id="designerApp">
+    <aside class="controls" aria-label="Design controls">
+      <div class="title"><strong>Design Studio</strong><small class="small">Presets & custom</small></div>
+
+      <label>Choose preset</label>
+      <div class="theme-list" id="themeList">
+        <div class="theme-item" data-theme="theme-space"><span>🌌 Space</span><small class="small">stars / dark</small></div>
+        <div class="theme-item" data-theme="theme-neon"><span>⚡ Neon</span><small class="small">vibrant glow</small></div>
+        <div class="theme-item" data-theme="theme-ocean"><span>🌊 Ocean</span><small class="small">soft blues</small></div>
+        <div class="theme-item" data-theme="theme-sunset"><span>🌅 Sunset</span><small class="small">warm gradient</small></div>
+        <div class="theme-item" data-theme="theme-min"><span>⚪ Minimal</span><small class="small">clean & light</small></div>
+      </div>
+
+      <label style="margin-top:12px">Brand styles</label>
+      <div id="brandList" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="brand-btn" data-brand="apple" title="Apple style" style="padding:8px 10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff;box-shadow:0 6px 18px rgba(1,6,20,0.02)"> Apple</button>
+        <button class="brand-btn" data-brand="samsung" title="Samsung style" style="padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,#0b3bff,#00aaff);color:#fff">Samsung</button>
+        <button class="brand-btn" data-brand="amazon" title="Amazon style" style="padding:8px 10px;border-radius:10px;background:#ff9900;color:#111">Amazon</button>
+        <button class="brand-btn" data-brand="google" title="Google style" style="padding:8px 10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:#fff">Google</button>
+        <button class="brand-btn" data-brand="microsoft" title="Microsoft style" style="padding:8px 10px;border-radius:10px;background:#0078d4;color:#fff">Microsoft</button>
+        <button class="brand-btn" data-brand="netflix" title="Netflix style" style="padding:8px 10px;border-radius:10px;background:#e50914;color:#fff">Netflix</button>
+        <button class="brand-btn" data-brand="spotify" title="Spotify style" style="padding:8px 10px;border-radius:10px;background:#1db954;color:#042">Spotify</button>
+        <button class="brand-btn" data-brand="tesla" title="Tesla style" style="padding:8px 10px;border-radius:10px;background:#cc0000;color:#fff">Tesla</button>
+      </div>
+      <style>
+        .brand-btn{cursor:pointer;font-weight:700;border:0;padding:8px 12px}
+        .brand-btn:focus{outline:3px solid rgba(13,110,253,0.14);outline-offset:3px}
+      </style>
+ 
+      <label for="primaryColor">Primary color</label>
+      <input id="primaryColor" type="color" value="#0d6efd">
+
+      <label for="accentColor">Accent color</label>
+      <input id="accentColor" type="color" value="#0b5ed7">
+
+      <label for="fontSelect">Font</label>
+      <select id="fontSelect">
+        <option value="Inter, system-ui, Arial, sans-serif">Inter (default)</option>
+        <option value="'Space Grotesk', system-ui, sans-serif">Space Grotesk</option>
+        <option value="Georgia, serif">Georgia (serif)</option>
+        <option value="Courier New, monospace">Courier (monospace)</option>
+      </select>
+
+      <label for="bgToggle">Special background</label>
+      <div class="row">
+        <label style="flex:1"><input id="bgToggle" type="checkbox"> show extra effect</label>
+      </div>
+
+      <label for="animSelect">Theme animation</label>
+      <select id="animSelect" style="width:100%;padding:8px;border-radius:8px;margin-top:6px">
+        <option value="fade">Fade (smooth)</option>
+        <option value="swoosh">Swoosh (wipe)</option>
+        <option value="flip">Flip (3D)</option>
+        <option value="scale">Scale (pop)</option>
+        <option value="pulse">Pulse (breathe)</option>
+      </select>
+
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button id="applyBtn" class="btn">Apply</button>
+        <button id="resetBtn" class="btn ghost">Reset</button>
+      </div>
+
+      <p class="small" style="margin-top:16px">Tip: choose a preset, tweak the colors or fonts, then Apply. Settings persist in this browser.</p>
+    </aside>
+
+    <section class="preview" role="region" aria-label="Preview">
+      <div style="position:relative">
+        <!-- stars overlay only visible in space theme AND when effect enabled -->
+        <div class="stars" id="stars" aria-hidden="true"></div>
+        <div class="title" style="margin-bottom:12px">
+          <div class="brand"><h1>WEWBSITE</h1><div class="small">Professional, simple and fast</div></div>
+          <div><button class="btn">Get started</button></div>
+        </div>
+
+        <div class="sample-card">
+          <div class="sample-avatar" aria-hidden="true"></div>
+          <div class="sample-text">
+            <h3>Design preview</h3>
+            <div class="small">A quick example of how components look in this theme. Colors, fonts and background update live.</div>
+          </div>
+          <div style="margin-left:auto" class="sample-buttons">
+            <button class="btn ghost">Secondary</button>
+            <button class="btn">Primary</button>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px">
+          <div class="sample-card"><div style="font-weight:700;color:var(--primary)">Design</div><div class="small">Card content</div></div>
+          <div class="sample-card"><div style="font-weight:700;color:var(--primary)">Development</div><div class="small">Card content</div></div>
+          <div class="sample-card"><div style="font-weight:700;color:var(--primary)">Support</div><div class="small">Card content</div></div>
+        </div>
+
+        <div class="footer-sample">
+          <div class="small">© <span id="sampleYear"></span> WEWBSITE</div>
+          <div class="small">Contact · About · Tools</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Basic designer logic
+    const themeList = document.getElementById('themeList');
+    const primaryInput = document.getElementById('primaryColor');
+    const accentInput = document.getElementById('accentColor');
+    const fontSelect = document.getElementById('fontSelect');
+    const bgToggle = document.getElementById('bgToggle');
+    const applyBtn = document.getElementById('applyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const stars = document.getElementById('stars');
+    const sampleYear = document.getElementById('sampleYear');
+
+    sampleYear.textContent = new Date().getFullYear();
+
+    const defaults = {
+      theme: 'theme-space',
+      primary: '#0d6efd',
+      accent: '#0b5ed7',
+      font: "Inter, system-ui, Arial, sans-serif",
+      effect: true
+    };
+
+    function setThemeClass(name) {
+      document.body.classList.remove('theme-space','theme-neon','theme-ocean','theme-sunset','theme-min');
+      if (name) document.body.classList.add(name);
+    }
+
+    function applySettings(s, save=true) {
+      s = s || loadSettings() || defaults;
+      setThemeClass(s.theme);
+      document.documentElement.style.setProperty('--primary', s.primary);
+      document.documentElement.style.setProperty('--accent', s.accent);
+      document.documentElement.style.setProperty('--font', s.font);
+      document.documentElement.style.setProperty('--bg', 'var(--bg)'); // keep theme bg
+      document.body.style.fontFamily = s.font;
+      primaryInput.value = s.primary;
+      accentInput.value = s.accent;
+      fontSelect.value = s.font;
+      bgToggle.checked = !!s.effect;
+      toggleEffect(s.effect);
+      if (save) localStorage.setItem('designSettings', JSON.stringify(s));
+    }
+
+    function loadSettings() {
+      try {
+        return JSON.parse(localStorage.getItem('designSettings'));
+      } catch (e) { return null; }
+    }
+
+    function toggleEffect(on) {
+      // show decorative stars for space theme only if effect enabled
+      const theme = document.body.classList.contains('theme-space');
+      stars.innerHTML = '';
+      if (on && theme) {
+        // generate simple stars
+        for (let i=0;i<60;i++){
+          const s = document.createElement('div');
+          s.className = 's';
+          const size = Math.random()*3 + 1;
+          s.style.width = s.style.height = size + 'px';
+          s.style.left = Math.random()*100 + '%';
+          s.style.top = Math.random()*100 + '%';
+          s.style.opacity = Math.random()*0.9;
+          stars.appendChild(s);
+        }
+        stars.style.opacity = 1;
+      } else {
+        stars.style.opacity = 0;
+      }
+    }
+
+    // preset click
+    themeList.addEventListener('click', (e) => {
+      const item = e.target.closest('.theme-item');
+      if (!item) return;
+      const theme = item.dataset.theme;
+      // temporarily set theme class so color pickers match visual defaults
+      setThemeClass(theme);
+      // pick default colors depending on theme
+      const tmp = {
+        'theme-space': {primary:'#7ce8ff', accent:'#a07cff', font:"'Space Grotesk', system-ui, sans-serif", effect:true},
+        'theme-neon': {primary:'#ff00d0', accent:'#00e6ff', font:"'Space Grotesk', system-ui, sans-serif", effect:false},
+        'theme-ocean': {primary:'#0b88c2', accent:'#00b4d8', font:"Inter, system-ui, Arial, sans-serif", effect:false},
+        'theme-sunset': {primary:'#ff6b6b', accent:'#ffb86b', font:"Inter, system-ui, Arial, sans-serif", effect:false},
+        'theme-min': {primary:'#0d6efd', accent:'#0b5ed7', font:"Inter, system-ui, Arial, sans-serif", effect:false}
+      }[theme] || {primary:defaults.primary, accent:defaults.accent, font:defaults.font, effect:false};
+
+      primaryInput.value = tmp.primary;
+      accentInput.value = tmp.accent;
+      fontSelect.value = tmp.font;
+      bgToggle.checked = tmp.effect;
+      // store selected theme but do not save until Apply pressed
+      document.body.dataset.pendingTheme = theme;
+    });
+
+    applyBtn.addEventListener('click', () => {
+      const theme = document.body.dataset.pendingTheme || defaults.theme;
+      const s = {
+        theme,
+        primary: primaryInput.value,
+        accent: accentInput.value,
+        font: fontSelect.value,
+        effect: bgToggle.checked,
+        animation: document.getElementById('animSelect').value || 'fade'
+      };
+      // set CSS vars
+      document.documentElement.style.setProperty('--primary', s.primary);
+      document.documentElement.style.setProperty('--accent', s.accent);
+      setThemeClass(s.theme);
+      document.body.style.fontFamily = s.font;
+      toggleEffect(s.effect);
+      localStorage.setItem('designSettings', JSON.stringify(s));
+      // notify other pages/tabs and apply on current page with animation
+      window.dispatchEvent(new CustomEvent('designThemeApplied', { detail: s }));
+      // also use storage event for other tabs
+      try { localStorage.setItem('designSettings:updatedAt', String(Date.now())); } catch(e){}
+      // remove pending marker
+      delete document.body.dataset.pendingTheme;
+    });
+
+    resetBtn.addEventListener('click', () => {
+      localStorage.removeItem('designSettings');
+      applySettings(defaults, true);
+    });
+
+    // initial load
+    (function(){
+      const saved = loadSettings();
+      if (saved) applySettings(saved, false);
+      else applySettings(defaults, false);
+    })();
+
+    // small polish: clicking a theme item highlights it briefly
+    document.querySelectorAll('.theme-item').forEach(i=>{
+      i.addEventListener('click', ()=> {
+        i.style.background = 'rgba(0,0,0,0.04)';
+        setTimeout(()=> i.style.background = '', 320);
+      });
+    });
+
+    // animate stars (subtle twinkle)
+    setInterval(()=> {
+      document.querySelectorAll('.stars .s').forEach(s=>{
+        s.style.opacity = (0.4 + Math.random()*0.8).toFixed(2);
+      });
+    }, 900);
+
+    // Brand presets: quick ready-made full themes that mimic popular brand palettes
+    const brandPresets = {
+      apple:    { primary:'#000000', accent:'#111111', bg:'linear-gradient(180deg,#ffffff,#f4f6f8)', text:'#0b0b0b', font:"Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif", theme:'theme-min', animation:'fade' },
+      samsung:  { primary:'#0b3bff', accent:'#00aaff', bg:'linear-gradient(180deg,#f3f8ff,#e9f5ff)', text:'#02133a', font:"'Space Grotesk', system-ui, sans-serif", theme:'theme-min', animation:'swoosh' },
+      amazon:   { primary:'#ff9900', accent:'#232f3e', bg:'linear-gradient(180deg,#ffffff,#fffdfa)', text:'#111214', font:"Inter, system-ui, Arial, sans-serif", theme:'theme-min', animation:'scale' },
+      google:   { primary:'#4285f4', accent:'#ea4335', bg:'linear-gradient(180deg,#ffffff,#f7fbff)', text:'#12202b', font:"'Product Sans', system-ui, Arial, sans-serif", theme:'theme-min', animation:'flip' },
+      microsoft:{ primary:'#0078d4', accent:'#ffb900', bg:'linear-gradient(180deg,#ffffff,#f2f8ff)', text:'#07203a', font:"Segoe UI, Inter, system-ui, sans-serif", theme:'theme-min', animation:'swoosh' },
+      netflix:  { primary:'#e50914', accent:'#221f1f', bg:'linear-gradient(180deg,#0f0f0f,#050505)', text:'#fff', font:"Inter, system-ui, Arial, sans-serif", theme:'theme-space', animation:'fade' },
+      spotify:  { primary:'#1DB954', accent:'#191414', bg:'linear-gradient(180deg,#071114,#081616)', text:'#e6f7f0', font:"Inter, system-ui, Arial, sans-serif", theme:'theme-space', animation:'pulse' },
+      tesla:    { primary:'#cc0000', accent:'#111111', bg:'linear-gradient(180deg,#ffffff,#fafafa)', text:'#111', font:"Inter, system-ui, Arial, sans-serif", theme:'theme-min', animation:'scale' }
+    };
+
+    // handle brand button clicks
+    document.getElementById('brandList').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.brand-btn');
+      if (!btn) return;
+      const name = btn.dataset.brand;
+      const preset = brandPresets[name];
+      if (!preset) return;
+      // build settings object compatible with applySettings
+      const s = {
+        theme: preset.theme || defaults.theme,
+        primary: preset.primary,
+        accent: preset.accent || preset.primary,
+        font: preset.font || defaults.font,
+        effect: false,
+        bg: preset.bg,
+        animation: preset.animation || 'fade'
+      };
+      // apply, save and dispatch so theme.js applies animation site-wide
+      applySettings(s, true);
+      window.dispatchEvent(new CustomEvent('designThemeApplied', { detail: s }));
+      try { localStorage.setItem('designSettings:updatedAt', String(Date.now())); } catch(e){}
+    });
+  </script>
+</body>
+</html>

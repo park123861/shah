@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WEWBSITE — Home</title>
+
+  <!-- fonts & icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <h1>WEWBSITE</h1>
+        <p class="tag">Professional, simple and fast</p>
+      </div>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="designs.html">Design Presets</a></li>
+          <li><a href="calc.html">Play / Tools</a></li>
+          <li><a href="face.html">Face Follow</a></li>
+          <li><a href="head.html" class="contact-link">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" id="home" aria-labelledby="welcome-title">
+      <h2 id="welcome-title">Welcome to WEWBSITE</h2>
+      <p class="lead">Clean UI, accessible interactions and a simple contact flow.</p>
+
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="changeHeading()">Update Heading</button>
+        <a href="head.html" class="btn-muted">Open Contact Form</a>
+      </div>
+    </section>
+
+    <section class="panel" id="about">
+      <h3>Quick demo — greeting</h3>
+      <form id="greetForm" onsubmit="event.preventDefault(); greetuser();">
+        <label for="name">Your name</label>
+        <input id="name" name="name" type="text" placeholder="Enter your name" aria-label="Your name">
+        <button type="submit" class="btn-primary">Greet me</button>
+      </form>
+      <div id="message" class="message" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" id="services">
+      <h3>Services</h3>
+      <div class="grid-3">
+        <div class="card">
+          <h4>Design</h4>
+          <p>Simple responsive UI patterns and components.</p>
+        </div>
+        <div class="card">
+          <h4>Development</h4>
+          <p>Lightweight front-end scaffolds and accessibility-first markup.</p>
+        </div>
+        <div class="card">
+          <h4>Support</h4>
+          <p>Helpful docs and small, focused enhancements.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-col">
+        <h4>WEWBSITE</h4>
+        <p class="muted">Building clean, usable web interfaces.</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Quick links</h5>
+        <ul class="footer-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="designs.html">Design Presets</a></li>
+          <li><a href="calc.html">Play / Tools</a></li>
+          <li><a href="head.html">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <p class="muted">Email: <a href="mailto:parkseroyi42@gmail.com">parkseroyi42@gmail.com</a></p>
+        <p class="muted">Phone: <a href="tel:+923164566623">+92 3164566623</a></p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">© <span id="year"></span> WEWBSITE · All rights reserved</div>
+    </div>
+  </footer>
+
+  <!-- theme panel / floating control -->
+  <div id="themeControl" aria-hidden="false" style="position:fixed;right:18px;bottom:18px;z-index:1200">
+    <button id="themeToggle" aria-label="Open theme" style="background:var(--accent);color:#fff;border:0;padding:10px 12px;border-radius:10px;box-shadow:0 10px 24px rgba(13,110,253,0.12);cursor:pointer">Theme</button>
+
+    <div id="themePanel" style="display:none;width:320px;background:var(--card);color:var(--text);border-radius:12px;padding:12px;margin-top:10px;box-shadow:0 12px 40px rgba(2,6,23,0.12)">
+      <strong style="display:block;margin-bottom:8px">Theme controls</strong>
+
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="preset" data-preset="default" style="flex:1;padding:8px;border-radius:8px;border:1px solid #eee">Default</button>
+        <button class="preset" data-preset="space" style="flex:1;padding:8px;border-radius:8px;border:1px solid #eee">Space</button>
+      </div>
+
+      <label style="font-size:.85rem;margin-top:8px">Primary color</label>
+      <input id="primaryPicker" type="color" value="#0d6efd" style="width:100%;height:40px;border-radius:8px;border:0;margin-top:6px" />
+
+      <label style="font-size:.85rem;margin-top:8px">Background style</label>
+      <select id="bgSelect" style="width:100%;padding:8px;border-radius:8px;margin-top:6px">
+        <option value="light">Light</option>
+        <option value="soft">Soft gradient</option>
+        <option value="space">Space (dark)</option>
+      </select>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="applyTheme" style="flex:1;padding:8px;border-radius:8px;border:0;background:var(--accent);color:#fff">Apply</button>
+        <button id="resetTheme" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd;background:transparent">Reset</button>
+      </div>
+      <small style="display:block;margin-top:8px;color:var(--muted)">Theme choices persist in your browser.</small>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const panel = document.getElementById('themePanel');
+      const toggle = document.getElementById('themeToggle');
+      const primaryPicker = document.getElementById('primaryPicker');
+      const bgSelect = document.getElementById('bgSelect');
+      const applyBtn = document.getElementById('applyTheme');
+      const resetBtn = document.getElementById('resetTheme');
+
+      const presets = {
+        default: { primary:'#0d6efd', bg:'linear-gradient(180deg,#f6f9fc,#fff)', text:'#222' },
+        space:   { primary:'#7ce8ff', bg:'radial-gradient(ellipse at center,#071026 0%, #020617 60%)', text:'#e6f7ff' }
+      };
+
+      function apply(settings, save=true){
+        if (!settings) settings = load() || presets.default;
+        document.documentElement.style.setProperty('--accent', settings.primary);
+        document.documentElement.style.setProperty('--primary', settings.primary);
+        document.documentElement.style.setProperty('--text', settings.text || '#222');
+        document.documentElement.style.setProperty('--bg', settings.bg || presets.default.bg);
+        // update UI picks to reflect applied
+        primaryPicker.value = settings.primary;
+        // save
+        if (save) localStorage.setItem('wew_theme', JSON.stringify(settings));
+      }
+
+      function load(){
+        try { return JSON.parse(localStorage.getItem('wew_theme')); } catch(e){ return null; }
+      }
+
+      // toggle panel
+      toggle.addEventListener('click', ()=> {
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      });
+
+      // preset buttons
+      document.querySelectorAll('.preset').forEach(b => {
+        b.addEventListener('click', ()=> {
+          const p = b.dataset.preset;
+          const s = presets[p] || presets.default;
+          // temporarily reflect preset in pickers
+          primaryPicker.value = s.primary;
+          if (p === 'space') bgSelect.value = 'space';
+          else bgSelect.value = 'light';
+        });
+      });
+
+      applyBtn.addEventListener('click', ()=> {
+        const p = primaryPicker.value;
+        const bgOpt = bgSelect.value;
+        let bg = presets.default.bg, text = '#222';
+        if (bgOpt === 'soft') bg = 'linear-gradient(180deg,#eef6ff,#ffffff)';
+        if (bgOpt === 'space') { bg = presets.space.bg; text = '#e6f7ff'; }
+        const s = { primary: p, bg, text };
+        apply(s, true);
+      });
+
+      resetBtn.addEventListener('click', ()=> {
+        localStorage.removeItem('wew_theme');
+        apply(presets.default, true);
+      });
+
+      // init on load
+      apply(load() || presets.default, false);
+
+      // close panel when clicking outside (simple)
+      document.addEventListener('click', (ev) => {
+        if (!document.getElementById('themeControl').contains(ev.target) && panel.style.display === 'block') {
+          panel.style.display = 'none';
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
